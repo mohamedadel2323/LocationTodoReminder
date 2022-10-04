@@ -51,12 +51,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             if (::selectedPoi.isInitialized) {
                 onLocationSelected()
             } else {
-//                Snackbar.make(
-//                    requireView(),
-//                    "You should select Poi to be able to save a reminder",
-//                    Snackbar.LENGTH_LONG
-//                ).show()
-                _viewModel.showErrorMessage.value =
+                _viewModel.showSnackBar.value =
                     "You should select Poi to be able to save a reminder"
             }
         }
