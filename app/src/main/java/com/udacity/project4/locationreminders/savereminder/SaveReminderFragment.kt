@@ -37,8 +37,7 @@ private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
 private const val TAG = "SaveReminderFragment"
 private const val LOCATION_PERMISSION_INDEX = 0
 private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
-private const val GEOFENCE_RADIUS_IN_METERS = 30f
-private const val ACTION_GEOFENCE_EVENT = "ACTION_GEOFENCE_EVENT"
+private const val GEOFENCE_RADIUS_IN_METERS = 50f
 
 
 class SaveReminderFragment : BaseFragment() {
@@ -48,6 +47,7 @@ class SaveReminderFragment : BaseFragment() {
     private lateinit var reminderDataItem: ReminderDataItem
     private val runningQOrLater =
         android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+    
     private lateinit var geofencingClient: GeofencingClient
 
     private val geofencePendingIntent: PendingIntent by lazy {
@@ -265,5 +265,10 @@ class SaveReminderFragment : BaseFragment() {
             }
         }
 
+    }
+
+    companion object {
+        internal const val ACTION_GEOFENCE_EVENT =
+            "ACTION_GEOFENCE_EVENT"
     }
 }

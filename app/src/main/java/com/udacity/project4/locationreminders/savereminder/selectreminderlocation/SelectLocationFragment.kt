@@ -3,7 +3,9 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -31,6 +33,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var selectedPoi: PointOfInterest
     private val REQUEST_LOCATION_PERMISSION = 1
+    private val TAG = SelectLocationFragment::class.java.simpleName
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -63,6 +66,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         mMap = map
         setPoiClick(mMap)
         setMapOnLongClick(mMap)
+        setMapStyle(mMap)
+
         enableMyLocation()
     }
 
@@ -133,6 +138,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    private fun setMapStyle(map: GoogleMap) {
+        try {
+            val success = map.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(requireActivity(), R.raw.map_style)
+            )
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.")
+            }
+        } catch (e: Resources.NotFoundException) {
+            Log.e(TAG, "Can't find style. Error: ", e)
+
+        }
+
+    }
+
     private fun enableMyLocation() {
         if (ContextCompat.checkSelfPermission(
                 requireActivity(),
@@ -149,7 +169,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     mMap.moveCamera(
                         CameraUpdateFactory.newLatLngZoom(
                             latLng,
-                            10f
+                            12f
                         )
                     )
                     mMap.addMarker(
