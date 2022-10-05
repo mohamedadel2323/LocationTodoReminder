@@ -121,7 +121,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
             var latLng = LatLng(it.latitude, it.longitude)
 
-            selectedPoi = PointOfInterest(latLng, "dropped_id", "dropped_place")
+            selectedPoi = PointOfInterest(
+                latLng,
+                getString(R.string.dropped_pin),
+                getString(R.string.dropped_pin)
+            )
 
             val snippet = String.format(
                 Locale.getDefault(),

@@ -34,7 +34,6 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             }
             enqueueWork(context, intent)
         }
-//TODO: implement the onReceive method to receive the geofencing events at the background
     }
 
     private fun errorMessage(context: Context, errorCode: Int): String {

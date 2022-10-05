@@ -47,7 +47,7 @@ class SaveReminderFragment : BaseFragment() {
     private lateinit var reminderDataItem: ReminderDataItem
     private val runningQOrLater =
         android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
-    
+
     private lateinit var geofencingClient: GeofencingClient
 
     private val geofencePendingIntent: PendingIntent by lazy {
@@ -94,6 +94,7 @@ class SaveReminderFragment : BaseFragment() {
             val longitude = _viewModel.longitude.value
 
             reminderDataItem = ReminderDataItem(title, description, location, latitude, longitude)
+
             if (_viewModel.validateEnteredData(reminderDataItem)) {
                 if (foregroundAndBackgroundLocationPermissionApproved()) {
                     addGeofence()
