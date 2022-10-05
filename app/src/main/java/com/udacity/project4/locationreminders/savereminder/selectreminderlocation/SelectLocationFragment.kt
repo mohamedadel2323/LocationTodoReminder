@@ -69,9 +69,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun onLocationSelected() {
         _viewModel.setSelectedPoi(selectedPoi)
         _viewModel.navigationCommand.value = NavigationCommand.Back
-        //        TODO: When the user confirms on the selected location,
-        //         send back the selected location details to the view model
-        //         and navigate back to the previous fragment to save the reminder and add the geofence
     }
 
 
@@ -147,16 +144,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 requireActivity()
             )
             fusedLocationProviderClient.lastLocation.addOnSuccessListener {
-                val latLng = LatLng(it.latitude, it.longitude)
-                mMap.moveCamera(
-                    CameraUpdateFactory.newLatLngZoom(
-                        latLng,
-                        10f
+                it?.let {
+                    val latLng = LatLng(it.latitude, it.longitude)
+                    mMap.moveCamera(
+                        CameraUpdateFactory.newLatLngZoom(
+                            latLng,
+                            10f
+                        )
                     )
-                )
-                mMap.addMarker(
-                    MarkerOptions().position(latLng).title(getString(R.string.my_location))
-                )
+                    mMap.addMarker(
+                        MarkerOptions().position(latLng).title(getString(R.string.my_location))
+                    )
+                }
             }
         } else {
             ActivityCompat.requestPermissions(
