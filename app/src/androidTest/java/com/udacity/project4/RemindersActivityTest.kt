@@ -2,6 +2,7 @@ package com.udacity.project4
 
 import android.app.Application
 import androidx.test.core.app.ActivityScenario
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.Espresso.pressBack
@@ -120,6 +121,9 @@ class RemindersActivityTest :
 
         // Check that the new reminder is saved and displayed
         onView(withText("New Reminder")).check(matches(isDisplayed()))
+
+        // Check that the new geofence snack bar is displayed
+        onView(withText(appContext.getString(R.string.geofence_added))).check(matches(isDisplayed()))
 
         activityScenario.close()
 
