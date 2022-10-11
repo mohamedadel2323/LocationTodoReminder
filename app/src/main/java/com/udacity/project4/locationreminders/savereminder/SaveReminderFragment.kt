@@ -135,7 +135,6 @@ class SaveReminderFragment : BaseFragment() {
         this.requestPermissions(permissionArray, resultCode)
     }
 
-
     @TargetApi(29)
     private fun foregroundAndBackgroundLocationPermissionApproved(): Boolean {
         val foregroundLocationApproved =
