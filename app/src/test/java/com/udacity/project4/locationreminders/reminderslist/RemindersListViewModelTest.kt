@@ -32,7 +32,6 @@ class RemindersListViewModelTest {
 
     private lateinit var reminderListViewModel: RemindersListViewModel
     private lateinit var emptyReminderListViewModel: RemindersListViewModel
-    private lateinit var nullReminderListViewModel: RemindersListViewModel
     private lateinit var fakeDataSource: FakeDataSource
 
     private val reminder2 =
@@ -50,11 +49,6 @@ class RemindersListViewModelTest {
             RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
         emptyReminderListViewModel =
             RemindersListViewModel(ApplicationProvider.getApplicationContext(), FakeDataSource())
-        nullReminderListViewModel =
-            RemindersListViewModel(
-                ApplicationProvider.getApplicationContext(),
-                FakeDataSource(null)
-            )
     }
 
     @After
@@ -111,14 +105,15 @@ class RemindersListViewModelTest {
     //ErrorTesting
     @Test
     fun loadAllReminders_errorNullValue_snackBarMessageUpdated() {
-        //Given - load the reminders
-        nullReminderListViewModel.loadReminders()
+        //Given - load the reminders with ensuring that Error is gonna be the result
+        fakeDataSource.setReturnError(true)
+        reminderListViewModel.loadReminders()
 
-        //when - Getting the reminders list live data when it null
-        val snackBarMessage = nullReminderListViewModel.showSnackBar.getOrAwaitValue()
+        //when - Getting the reminders list live data
+        val snackBarMessage = reminderListViewModel.showSnackBar.getOrAwaitValue()
 
         //Then Check if the right error message passed to the snack bar
-        assertThat(snackBarMessage, `is`("Reminders not found."))
+        assertThat(snackBarMessage, `is`("Test Error"))
     }
 
 

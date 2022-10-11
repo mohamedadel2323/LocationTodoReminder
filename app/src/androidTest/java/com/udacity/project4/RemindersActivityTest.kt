@@ -9,9 +9,11 @@ import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import androidx.test.rule.ActivityTestRule
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.local.LocalDB
@@ -20,9 +22,13 @@ import com.udacity.project4.locationreminders.reminderslist.RemindersListViewMod
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.monitorActivity
+import com.udacity.project4.utils.EspressoIdlingResource
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.not
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -36,7 +42,10 @@ import org.koin.test.get
 @LargeTest
 //END TO END test to black box test the app
 class RemindersActivityTest :
-    AutoCloseKoinTest() {// Extended Koin Test - embed autoclose @after method to close Koin after every test
+    AutoCloseKoinTest() {
+    // Extended Koin Test - embed autoclose @after method to close Koin after every test
+    @get:Rule
+    var mActivityRule = ActivityTestRule<RemindersActivity>(RemindersActivity::class.java)
 
     private lateinit var repository: ReminderDataSource
     private lateinit var appContext: Application
@@ -81,14 +90,15 @@ class RemindersActivityTest :
 
     @Before
     fun registerIdlingResource() {
+        IdlingRegistry.getInstance().register(EspressoIdlingResource.countingIdlingResource)
         IdlingRegistry.getInstance().register(dataBindingIdlingResource)
     }
 
     @After
     fun unRegisterIdlingResource() {
+        IdlingRegistry.getInstance().unregister(EspressoIdlingResource.countingIdlingResource)
         IdlingRegistry.getInstance().unregister(dataBindingIdlingResource)
     }
-
 
     @Test
     fun addNewReminder() {
@@ -124,6 +134,16 @@ class RemindersActivityTest :
 
         // Check that the new geofence snack bar is displayed
         onView(withText(appContext.getString(R.string.geofence_added))).check(matches(isDisplayed()))
+
+        onView(withText(R.string.reminder_saved)).inRoot(
+            withDecorView(
+                not(
+                    `is`(
+                        mActivityRule.getActivity().getWindow().getDecorView()
+                    )
+                )
+            )
+        ).check(matches(isDisplayed()))
 
         activityScenario.close()
 

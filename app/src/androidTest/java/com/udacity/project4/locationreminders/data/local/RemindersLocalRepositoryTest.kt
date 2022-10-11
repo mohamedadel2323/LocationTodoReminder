@@ -8,6 +8,7 @@ import androidx.test.filters.MediumTest
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.data.dto.Result.Success
+import com.udacity.project4.locationreminders.data.dto.Result.Error
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
@@ -87,6 +88,17 @@ class RemindersLocalRepositoryTest {
         // check it's not the same saved reminder
         assertThat(retrievedReminder.data.title, `is`(not(reminder2.title)))
     }
+
+    // Not Found Reminder Scenario
+    @Test
+    fun getNonExistReminderById_returnError() = runBlockingTest {
+        // Getting non exist reminder by wrong id
+        val retrievedReminder = remindersLocalRepository.getReminder("bla bla") as Error
+
+        // check its error message equal to the not found message returned from the local repo
+        assertThat(retrievedReminder.message, `is`("Reminder not found!"))
+    }
+
 
     @Test
     fun deleteAllReminders() = runBlockingTest {
