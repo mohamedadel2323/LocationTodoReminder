@@ -182,8 +182,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 }
             }
         } else {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
+            this.requestPermissions(
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 REQUEST_LOCATION_PERMISSION
             )
@@ -199,6 +198,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
             if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 enableMyLocation()
+            } else if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_DENIED)) {
+                _viewModel.showSnackBar.value =
+                    getString(R.string.location_required_error)
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)

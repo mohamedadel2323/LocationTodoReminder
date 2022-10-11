@@ -43,4 +43,5 @@
     <string name="my_location">My Location</string>
     <string name="unknown_geofence_error">Unknown geofence error.</string>
     <string name="geofence_added">Geofence Added</string>
+    <string name="enable_permission">You need to enable location permission in order to save reminders</string>
 </resources>
