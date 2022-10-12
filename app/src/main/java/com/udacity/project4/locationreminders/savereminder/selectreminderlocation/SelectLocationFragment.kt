@@ -2,6 +2,8 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 
 import android.Manifest
+import android.content.Intent
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.os.Bundle
@@ -10,12 +12,14 @@ import android.view.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -24,6 +28,9 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import java.util.*
+
+
+private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
@@ -59,6 +66,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             }
         }
 
+        _viewModel.lastLocation.observe(viewLifecycleOwner, androidx.lifecycle.Observer {
+            it?.let {
+                setMyLocation(it)
+                _viewModel.finishLastLocation()
+            }
+        })
+
         return binding.root
     }
 
@@ -67,8 +81,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setPoiClick(mMap)
         setMapOnLongClick(mMap)
         setMapStyle(mMap)
-
         enableMyLocation()
+        if (ContextCompat.checkSelfPermission(
+                requireActivity(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            checkDeviceLocationSettings()
+        }
     }
 
     private fun onLocationSelected() {
@@ -170,15 +190,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             fusedLocationProviderClient.lastLocation.addOnSuccessListener {
                 it?.let {
                     val latLng = LatLng(it.latitude, it.longitude)
-                    mMap.moveCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                            latLng,
-                            12f
-                        )
-                    )
-                    mMap.addMarker(
-                        MarkerOptions().position(latLng).title(getString(R.string.my_location))
-                    )
+                    _viewModel.setLastLocation(latLng)
                 }
             }
         } else {
@@ -189,6 +201,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    private fun setMyLocation(latLng: LatLng) {
+        mMap.moveCamera(
+            CameraUpdateFactory.newLatLngZoom(
+                latLng,
+                12f
+            )
+        )
+        mMap.addMarker(
+            MarkerOptions().position(latLng).title(getString(R.string.my_location))
+        )
+    }
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -197,6 +221,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
             if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                checkDeviceLocationSettings()
                 enableMyLocation()
             } else if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_DENIED)) {
                 _viewModel.showSnackBar.value =
@@ -204,6 +229,63 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             }
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+
+    private fun checkDeviceLocationSettings(resolve: Boolean = true) {
+        val locationRequest = LocationRequest.create().apply {
+            priority = LocationRequest.PRIORITY_LOW_POWER
+        }
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        val settingClient = LocationServices.getSettingsClient(requireActivity())
+        val locationSettingsResponseTask = settingClient.checkLocationSettings(builder.build())
+        locationSettingsResponseTask.addOnFailureListener {
+            if (it is ResolvableApiException && resolve) {
+                try {
+                    this.startIntentSenderForResult(
+                        it.resolution.intentSender,
+                        REQUEST_TURN_DEVICE_LOCATION_ON,
+                        null,
+                        0,
+                        0,
+                        0,
+                        null
+                    )
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    Log.d(TAG, "Error getting location setting resolution: " + sendEx.message)
+                }
+            } else {
+                Snackbar.make(
+                    binding.selectFragment,
+                    R.string.location_required_error,
+                    Snackbar.LENGTH_INDEFINITE
+                ).setAction(android.R.string.ok) {
+                    checkDeviceLocationSettings()
+                }.show()
+            }
+        }
+        locationSettingsResponseTask.addOnSuccessListener {
+            enableMyLocation()
+        }
+        locationSettingsResponseTask.addOnCompleteListener {
+            it.addOnSuccessListener {
+                if (it.locationSettingsStates.isLocationPresent) {
+                    enableMyLocation()
+                }
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if ((requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) && (resultCode == 0)) {
+            Log.e(TAG, resultCode.toString())
+            checkDeviceLocationSettings(false)
+        }
+        if ((requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) && (resultCode == -1)) {
+            enableMyLocation()
         }
     }
 
